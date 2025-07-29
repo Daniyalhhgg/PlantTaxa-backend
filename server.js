@@ -18,13 +18,23 @@ if (!process.env.MONGO_URI) {
 
 // ✅ CORS Configuration
 const allowedOrigins = [
-  "https://your-frontend.vercel.app", // 🔄 REPLACE with your actual Vercel frontend URL
-  "http://localhost:3000",            // local development
+  "https://plant-taxa.vercel.app", // ✅ Your deployed frontend
+  "http://localhost:3000",         // ✅ Local frontend
 ];
 
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
+  origin: function (origin, callback) {
+    // Allow requests with no origin (e.g., mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error("❌ Not allowed by CORS: " + origin));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
 // ✅ Middleware
