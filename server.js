@@ -10,24 +10,34 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Validate Environment Variables
+// ✅ Validate MONGO_URI
 if (!process.env.MONGO_URI) {
   console.error("❌ MONGO_URI not defined in .env");
   process.exit(1);
 }
 
-// Middleware
+// ✅ CORS Configuration
+const allowedOrigins = [
+  "https://your-frontend.vercel.app", // 🔄 REPLACE with your actual Vercel frontend URL
+  "http://localhost:3000",            // local development
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
+
+// ✅ Middleware
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ limit: '5mb', extended: true }));
-app.use(cors());
 
-// Debug logger
+// ✅ Debug logger
 app.use((req, res, next) => {
   console.log(`📡 Request: ${req.method} ${req.url}`);
   next();
 });
 
-// MongoDB Connection
+// ✅ MongoDB Connection
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
@@ -36,46 +46,43 @@ mongoose
     process.exit(1);
   });
 
-// Route Imports
+// ✅ Routes
 const authRoutes = require("./routes/auth");
 const chatbotRoutes = require("./routes/chatbot");
 const forumRoutes = require("./routes/forum");
 const profileRoutes = require("./routes/profile");
 const climateRoutes = require("./routes/climate");
 const contactRoutes = require("./routes/contact");
-const adminRoutes = require("./routes/admin"); // ✅ NEW
-const diseaseRoutes = require('./routes/disease');
+const adminRoutes = require("./routes/admin");
+const diseaseRoutes = require("./routes/disease");
 
-
-// Route Middlewares
 app.use("/api/auth", authRoutes);
 app.use("/api/chatbot", chatbotRoutes);
 app.use("/api/forum", forumRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/climate", climateRoutes);
 app.use("/api/contact", contactRoutes);
-app.use("/api/admin", adminRoutes); // ✅ NEW
-app.use('/api/disease', diseaseRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/disease", diseaseRoutes);
 
-
-// Root Endpoint
+// ✅ Root test route
 app.get("/", (req, res) => {
   res.send("🌱 PlantTaxa Backend is Running...");
 });
 
-// 404 Handler
+// ✅ 404 Handler
 app.use((req, res) => {
   console.log(`❌ 404 - Route not found: ${req.method} ${req.url}`);
   res.status(404).json({ message: "❌ Route not found" });
 });
 
-// Error Handler
+// ✅ Global Error Handler
 app.use((err, req, res, next) => {
   console.error(`❌ Server error: ${err.message}`, err.stack);
   res.status(500).json({ error: "Internal server error" });
 });
 
-// Start Server
+// ✅ Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
 });
