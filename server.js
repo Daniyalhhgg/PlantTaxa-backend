@@ -4,85 +4,83 @@ const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const path = require("path");
 
-// Load environment variables from .env
+// Load .env variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ Validate MONGO_URI
+// ✅ Validate environment variables
 if (!process.env.MONGO_URI) {
-  console.error("❌ MONGO_URI not defined in .env");
+  console.error("❌ Error: MONGO_URI is not defined in .env");
   process.exit(1);
 }
 
-// ✅ CORS Configuration
+// ✅ Allowed frontends (CORS)
 const allowedOrigins = [
-  "https://your-frontend.vercel.app", // 🔄 REPLACE with your actual Vercel frontend URL
-  "http://localhost:3000",            // local development
+  "https://your-frontend.vercel.app", // 🔄 Replace with your deployed frontend URL
+  "http://localhost:3000",            // ✅ Local development
 ];
 
+// ✅ CORS configuration
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.warn("❌ Blocked by CORS:", origin);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
 }));
 
-// ✅ Middleware
-app.use(express.json({ limit: '5mb' }));
-app.use(express.urlencoded({ limit: '5mb', extended: true }));
+// ✅ Middleware to parse incoming requests
+app.use(express.json({ limit: "5mb" }));
+app.use(express.urlencoded({ extended: true, limit: "5mb" }));
 
-// ✅ Debug logger
+// ✅ Logger
 app.use((req, res, next) => {
-  console.log(`📡 Request: ${req.method} ${req.url}`);
+  console.log(`📡 ${req.method} ${req.originalUrl}`);
   next();
 });
 
-// ✅ MongoDB Connection
-mongoose
-  .connect(process.env.MONGO_URI)
+// ✅ Connect to MongoDB
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => {
-    console.error("❌ MongoDB connection error:", err);
+    console.error("❌ MongoDB connection error:", err.message);
     process.exit(1);
   });
 
-// ✅ Routes
-const authRoutes = require("./routes/auth");
-const chatbotRoutes = require("./routes/chatbot");
-const forumRoutes = require("./routes/forum");
-const profileRoutes = require("./routes/profile");
-const climateRoutes = require("./routes/climate");
-const contactRoutes = require("./routes/contact");
-const adminRoutes = require("./routes/admin");
-const diseaseRoutes = require("./routes/disease");
+// ✅ API Routes
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/chatbot", require("./routes/chatbot")); // 🌟 DeepSeek model
+app.use("/api/forum", require("./routes/forum"));
+app.use("/api/profile", require("./routes/profile"));
+app.use("/api/climate", require("./routes/climate"));
+app.use("/api/contact", require("./routes/contact"));
+app.use("/api/admin", require("./routes/admin"));
+app.use("/api/disease", require("./routes/disease"));
 
-app.use("/api/auth", authRoutes);
-app.use("/api/chatbot", chatbotRoutes);
-app.use("/api/forum", forumRoutes);
-app.use("/api/profile", profileRoutes);
-app.use("/api/climate", climateRoutes);
-app.use("/api/contact", contactRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/disease", diseaseRoutes);
-
-// ✅ Root test route
+// ✅ Root route
 app.get("/", (req, res) => {
-  res.send("🌱 PlantTaxa Backend is Running...");
+  res.send("🌿 PlantTaxa Backend is running...");
 });
 
-// ✅ 404 Handler
+// ✅ 404 Not Found
 app.use((req, res) => {
-  console.log(`❌ 404 - Route not found: ${req.method} ${req.url}`);
+  console.warn(`❌ 404 Not Found: ${req.method} ${req.originalUrl}`);
   res.status(404).json({ message: "❌ Route not found" });
 });
 
-// ✅ Global Error Handler
+// ✅ Global error handler
 app.use((err, req, res, next) => {
-  console.error(`❌ Server error: ${err.message}`, err.stack);
+  console.error(`❌ Server Error: ${err.message}`);
   res.status(500).json({ error: "Internal server error" });
 });
 
 // ✅ Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server is live at: http://localhost:${PORT}`);
 });
