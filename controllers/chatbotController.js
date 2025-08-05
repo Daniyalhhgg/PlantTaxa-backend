@@ -1,38 +1,32 @@
-const axios = require("axios");
+const OpenAI = require('openai');
 
-exports.chatWithBot = async (req, res) => {
-  const userMessage = req.body.message;
+const openai = new OpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: "https://openrouter.ai/api/v1",
+  defaultHeaders: {
+    "HTTP-Referer": "http://localhost:3000", // or your deployed frontend
+    "X-Title": "PlantTaxa App"
+  }
+});
+
+const chatWithBot = async (req, res) => {
+  const { message } = req.body;
 
   try {
-    const response = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        model: "deepseek/deepseek-r1-0528:free",
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful plant care assistant.",
-          },
-          {
-            role: "user",
-            content: userMessage,
-          },
-        ],
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://planttaxa.com", // optional
-          "X-Title": "PlantTaxa", // optional
-        },
-      }
-    );
+    const completion = await openai.chat.completions.create({
+      model: "mistralai/mistral-7b-instruct:free",
+      messages: [{ role: "user", content: message }],
+    });
 
-    const botReply = response.data.choices[0].message.content;
-    res.json({ answer: botReply });
+    const botMessage = completion.choices[0]?.message?.content || '🤖 No response.';
+    res.json({ response: botMessage });
+
   } catch (error) {
     console.error("OpenRouter Error:", error?.response?.data || error.message);
-    res.status(500).json({ error: "🤖 Bot is overloaded or not responding." });
+    res.status(500).json({
+      error: "🤖 Bot is overloaded or not responding.",
+    });
   }
 };
+
+module.exports = { chatWithBot };
