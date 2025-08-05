@@ -22,8 +22,8 @@ const PORT = process.env.PORT || 5000;
 
 // ✅ Allowed frontend domains for CORS
 const allowedOrigins = [
-  "https://your-frontend.vercel.app", // 🔄 Replace this with your deployed frontend
-  "http://localhost:3000",            // ✅ For local development
+  "https://plant-taxa.vercel.app", // ✅ Your deployed frontend on Vercel
+  "http://localhost:3000",         // ✅ Local frontend for dev
 ];
 
 // ✅ CORS configuration
