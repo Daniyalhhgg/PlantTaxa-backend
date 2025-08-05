@@ -4,26 +4,22 @@ const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const path = require("path");
 
-// ✅ Load environment variables
+// Load .env variables
 dotenv.config();
-
-// ✅ Validate required .env vars
-if (!process.env.MONGO_URI) {
-  console.error("❌ Error: MONGO_URI is not defined in .env");
-  process.exit(1);
-}
-if (!process.env.OPENROUTER_API_KEY) {
-  console.error("❌ Error: OPENROUTER_API_KEY is not defined in .env");
-  process.exit(1);
-}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ✅ Allowed frontend domains for CORS
+// ✅ Validate environment variables
+if (!process.env.MONGO_URI) {
+  console.error("❌ Error: MONGO_URI is not defined in .env");
+  process.exit(1);
+}
+
+// ✅ Allowed frontends (CORS)
 const allowedOrigins = [
-  "https://plant-taxa.vercel.app", // ✅ Your deployed frontend on Vercel
-  "http://localhost:3000",         // ✅ Local frontend for dev
+  "https://your-frontend.vercel.app", // 🔄 Replace with your deployed frontend URL
+  "http://localhost:3000",            // ✅ Local development
 ];
 
 // ✅ CORS configuration
@@ -39,11 +35,11 @@ app.use(cors({
   credentials: true,
 }));
 
-// ✅ Middleware to parse JSON
+// ✅ Middleware to parse incoming requests
 app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true, limit: "5mb" }));
 
-// ✅ Logger (each request)
+// ✅ Logger
 app.use((req, res, next) => {
   console.log(`📡 ${req.method} ${req.originalUrl}`);
   next();
@@ -59,13 +55,13 @@ mongoose.connect(process.env.MONGO_URI)
 
 // ✅ API Routes
 app.use("/api/auth", require("./routes/auth"));
-app.use("/api/chatbot", require("./routes/chatbot")); // 🤖 DeepSeek or Gemini etc.
+app.use("/api/chatbot", require("./routes/chatbot")); // 🌟 DeepSeek model
 app.use("/api/forum", require("./routes/forum"));
 app.use("/api/profile", require("./routes/profile"));
 app.use("/api/climate", require("./routes/climate"));
 app.use("/api/contact", require("./routes/contact"));
 app.use("/api/admin", require("./routes/admin"));
-app.use("/api/disease", require("./routes/disease")); // 🌿 Plant prediction
+app.use("/api/disease", require("./routes/disease"));
 
 // ✅ Root route
 app.get("/", (req, res) => {
@@ -78,13 +74,13 @@ app.use((req, res) => {
   res.status(404).json({ message: "❌ Route not found" });
 });
 
-// ✅ Global Error Handler
+// ✅ Global error handler
 app.use((err, req, res, next) => {
-  console.error("❌ Global Server Error:", err.stack || err.message);
+  console.error(`❌ Server Error: ${err.message}`);
   res.status(500).json({ error: "Internal server error" });
 });
 
 // ✅ Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server live at http://localhost:${PORT}`);
-});
+  console.log(`🚀 Server is live at: http://localhost:${PORT}`);
+});  
