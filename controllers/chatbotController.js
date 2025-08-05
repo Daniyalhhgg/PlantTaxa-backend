@@ -12,7 +12,7 @@ exports.chatWithBot = async (req, res) => {
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model: "google/gemma-3n-e2b-it:free", // ✅ Using Google Gemma 3n 2B
+        model: "deepseek/deepseek-r1:free", // ✅ DeepSeek R1 free model
         messages: [
           {
             role: "user",
@@ -24,17 +24,17 @@ exports.chatWithBot = async (req, res) => {
         headers: {
           "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": "https://your-frontend-url.vercel.app", // Optional, for leaderboard
-          "X-Title": "PlantTaxa" // Optional
+          "HTTP-Referer": "http://localhost:3000", // optional
+          "X-Title": "PlantTaxa" // optional
         },
       }
     );
 
     const botReply = response.data.choices?.[0]?.message?.content;
-    res.json({ answer: botReply || "🤖 No response from Gemma." });
+    res.json({ answer: botReply || "🤖 No response from DeepSeek." });
 
   } catch (err) {
-    console.error("Gemma API Error:", err.response?.data || err.message);
-    res.status(500).json({ error: "❌ Gemma chatbot error." });
+    console.error("DeepSeek API Error:", err.response?.data || err.message);
+    res.status(500).json({ error: "❌ DeepSeek chatbot error." });
   }
 };
