@@ -23,6 +23,7 @@
     "morgan": "^1.10.1",
     "multer": "^2.0.1",
     "node-fetch": "^2.7.0",
-    "nodemailer": "^7.0.5"
+    "nodemailer": "^7.0.5",
+    "openai": "^5.11.0"
   }
 }

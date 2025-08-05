@@ -1,40 +1,38 @@
 const axios = require("axios");
-require("dotenv").config();
 
 exports.chatWithBot = async (req, res) => {
-  const { message } = req.body;
-
-  if (!message) {
-    return res.status(400).json({ error: "Message is required" });
-  }
+  const userMessage = req.body.message;
 
   try {
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
       {
-        model: "deepseek/deepseek-r1:free", // ✅ DeepSeek R1 free model
+        model: "deepseek/deepseek-r1-0528:free",
         messages: [
           {
+            role: "system",
+            content: "You are a helpful plant care assistant.",
+          },
+          {
             role: "user",
-            content: message,
+            content: userMessage,
           },
         ],
       },
       {
         headers: {
-          "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": "http://localhost:3000", // optional
-          "X-Title": "PlantTaxa" // optional
+          "HTTP-Referer": "https://planttaxa.com", // optional
+          "X-Title": "PlantTaxa", // optional
         },
       }
     );
 
-    const botReply = response.data.choices?.[0]?.message?.content;
-    res.json({ answer: botReply || "🤖 No response from DeepSeek." });
-
-  } catch (err) {
-    console.error("DeepSeek API Error:", err.response?.data || err.message);
-    res.status(500).json({ error: "❌ DeepSeek chatbot error." });
+    const botReply = response.data.choices[0].message.content;
+    res.json({ answer: botReply });
+  } catch (error) {
+    console.error("OpenRouter Error:", error?.response?.data || error.message);
+    res.status(500).json({ error: "🤖 Bot is overloaded or not responding." });
   }
 };
