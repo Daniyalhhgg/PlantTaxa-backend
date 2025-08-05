@@ -4,27 +4,34 @@ const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const path = require("path");
 
-// Load .env variables
+// ✅ Load environment variables
 dotenv.config();
 
-const app = express();
-const PORT = process.env.PORT || 5000;
-
-// ✅ Validate environment variables
+// ✅ Validate required .env vars
 if (!process.env.MONGO_URI) {
   console.error("❌ Error: MONGO_URI is not defined in .env");
   process.exit(1);
 }
+if (!process.env.OPENROUTER_API_KEY) {
+  console.error("❌ Error: OPENROUTER_API_KEY is not defined in .env");
+  process.exit(1);
+}
 
-// ✅ Allowed frontends (CORS)
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+// ✅ Allowed frontend domains for CORS
 const allowedOrigins = [
-  "https://your-frontend.vercel.app", // 🔄 Replace with your deployed frontend URL
-  "http://localhost:3000",            // ✅ Local development
+  "https://plant-taxa.vercel.app",  // ✅ your Vercel frontend
+  "http://localhost:3000"           // ✅ local development
 ];
 
 // ✅ CORS configuration
 app.use(cors({
-  origin: (origin, callback) => {
+  origin: function (origin, callback) {
+    console.log("🌐 Origin:", origin);
+
+    // Allow requests with no origin (like Postman or curl) or from allowed origins
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -32,14 +39,14 @@ app.use(cors({
       callback(new Error("Not allowed by CORS"));
     }
   },
-  credentials: true,
+  credentials: true
 }));
 
-// ✅ Middleware to parse incoming requests
+// ✅ Middleware to parse JSON
 app.use(express.json({ limit: "5mb" }));
 app.use(express.urlencoded({ extended: true, limit: "5mb" }));
 
-// ✅ Logger
+// ✅ Logger (each request)
 app.use((req, res, next) => {
   console.log(`📡 ${req.method} ${req.originalUrl}`);
   next();
@@ -55,7 +62,7 @@ mongoose.connect(process.env.MONGO_URI)
 
 // ✅ API Routes
 app.use("/api/auth", require("./routes/auth"));
-app.use("/api/chatbot", require("./routes/chatbot")); // 🌟 DeepSeek model
+app.use("/api/chatbot", require("./routes/chatbot"));
 app.use("/api/forum", require("./routes/forum"));
 app.use("/api/profile", require("./routes/profile"));
 app.use("/api/climate", require("./routes/climate"));
@@ -74,13 +81,13 @@ app.use((req, res) => {
   res.status(404).json({ message: "❌ Route not found" });
 });
 
-// ✅ Global error handler
+// ✅ Global Error Handler
 app.use((err, req, res, next) => {
-  console.error(`❌ Server Error: ${err.message}`);
+  console.error("❌ Global Server Error:", err.stack || err.message);
   res.status(500).json({ error: "Internal server error" });
 });
 
 // ✅ Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server is live at: http://localhost:${PORT}`);
-});  
+  console.log(`🚀 Server live at http://localhost:${PORT}`);
+});
