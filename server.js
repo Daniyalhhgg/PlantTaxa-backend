@@ -22,8 +22,10 @@ const PORT = process.env.PORT || 5000;
 
 // ✅ Allowed frontend domains for CORS
 const allowedOrigins = [
-  "https://plant-taxa.vercel.app",  // ✅ your Vercel frontend
-  "http://localhost:3000"           // ✅ local development
+  "https://plant-taxa.vercel.app",        // ✅ main site
+  "http://localhost:3000",                // ✅ local frontend
+  "http://localhost:3001",                // ✅ local admin panel
+  "https://admin-dashboard-pi-wine-91.vercel.app" // ✅ live admin panel
 ];
 
 // ✅ CORS configuration
@@ -31,7 +33,6 @@ app.use(cors({
   origin: function (origin, callback) {
     console.log("🌐 Origin:", origin);
 
-    // Allow requests with no origin (like Postman or curl) or from allowed origins
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
