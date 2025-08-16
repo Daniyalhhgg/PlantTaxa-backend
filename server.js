@@ -22,17 +22,16 @@ const PORT = process.env.PORT || 5000;
 
 // ✅ Allowed frontend domains for CORS
 const allowedOrigins = [
-  "https://plant-taxa.vercel.app",        // ✅ main site
-  "http://localhost:3000",                // ✅ local frontend
-  "http://localhost:3001",                // ✅ local admin panel
-  "https://admin-dashboard-pi-wine-91.vercel.app" // ✅ live admin panel
+  "https://plant-taxa.vercel.app",        // main site
+  "http://localhost:3000",                // local frontend
+  "http://localhost:3001",                // local admin panel
+  "https://admin-dashboard-pi-wine-91.vercel.app" // live admin panel
 ];
 
 // ✅ CORS configuration
 app.use(cors({
   origin: function (origin, callback) {
     console.log("🌐 Origin:", origin);
-
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -61,7 +60,7 @@ mongoose.connect(process.env.MONGO_URI)
     process.exit(1);
   });
 
-// ✅ API Routes
+// ================== API Routes ==================
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/chatbot", require("./routes/chatbot"));
 app.use("/api/forum", require("./routes/forum"));
@@ -70,6 +69,16 @@ app.use("/api/climate", require("./routes/climate"));
 app.use("/api/contact", require("./routes/contact"));
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/disease", require("./routes/disease"));
+
+// ✅ E-commerce routes
+const productRoutes = require("./routes/products");
+const orderRoutes = require("./routes/orders");
+
+app.use("/api/products", productRoutes);  // Shop & ProductDetails
+app.use("/api/orders", orderRoutes);      // Checkout
+
+// ✅ Serve static product images (optional)
+app.use("/uploads/products", express.static(path.join(__dirname, "uploads/products")));
 
 // ✅ Root route
 app.get("/", (req, res) => {
