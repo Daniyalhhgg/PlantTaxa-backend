@@ -41,8 +41,8 @@ app.use(cors({
 }));
 
 // Body parser
-app.use(express.json({ limit: "5mb" }));
-app.use(express.urlencoded({ extended: true, limit: "5mb" }));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Logger
 app.use((req, res, next) => {
@@ -58,6 +58,9 @@ mongoose.connect(process.env.MONGO_URI)
     process.exit(1);
   });
 
+// --- Serve uploaded images ---
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 // API Routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/chatbot", require("./routes/chatbot"));
@@ -67,7 +70,7 @@ app.use("/api/climate", require("./routes/climate"));
 app.use("/api/contact", require("./routes/contact"));
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/disease", require("./routes/disease"));
-app.use("/api/plants", require("./routes/plant"));  // <-- THIS MUST EXIST
+app.use("/api/plants", require("./routes/plant"));  // <-- must handle file upload
 
 // Root route
 app.get("/", (req, res) => {
