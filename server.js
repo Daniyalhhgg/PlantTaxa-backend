@@ -70,6 +70,7 @@ app.use("/api/climate", require("./routes/climate"));
 app.use("/api/contact", require("./routes/contact"));
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api/disease", require("./routes/disease"));
+app.use("/api/plants", require("./routes/plant"));  // <-- ADDED THIS LINE
 
 // ✅ Root route
 app.get("/", (req, res) => {
