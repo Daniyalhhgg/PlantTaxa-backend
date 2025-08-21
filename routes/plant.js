@@ -1,3 +1,4 @@
+// backend/routes/plant.js
 const express = require("express");
 const router = express.Router();
 const Plant = require("../models/Plant");
@@ -5,7 +6,7 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-// Ensure uploads directory exists
+// ✅ uploads directory backend root pe ensure karo
 const uploadsDir = path.join(__dirname, "../uploads/plants");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
@@ -26,24 +27,39 @@ const upload = multer({ storage });
 router.get("/", async (req, res) => {
   try {
     const plants = await Plant.find();
-    res.json(plants);
+
+    // return absolute image url
+    const updatedPlants = plants.map((plant) => ({
+      ...plant.toObject(),
+      imageUrl: plant.imageUrl
+        ? plant.imageUrl.startsWith("http")
+          ? plant.imageUrl
+          : `${req.protocol}://${req.get("host")}${plant.imageUrl}`
+        : "",
+    }));
+
+    res.json(updatedPlants);
   } catch (err) {
-    res.status(500).json({ error: err.message }); // Use 'error' for frontend consistency
+    res.status(500).json({ error: err.message });
   }
 });
 
 // ADD new plant with image upload
 router.post("/", upload.single("image"), async (req, res) => {
   try {
-    const { name, price, details } = req.body;
-    const imageUrl = req.file ? `/uploads/plants/${req.file.filename}` : "";
+    const { name, price, description } = req.body;
 
-    const plant = new Plant({ name, price, details, imageUrl });
+    // ✅ full URL save
+    const imageUrl = req.file
+      ? `${req.protocol}://${req.get("host")}/uploads/plants/${req.file.filename}`
+      : "";
+
+    const plant = new Plant({ name, price, description, imageUrl });
     await plant.save();
 
     res.json({ message: "Plant added successfully", plant });
   } catch (err) {
-    res.status(500).json({ error: err.message }); // Use 'error' for frontend consistency
+    res.status(500).json({ error: err.message });
   }
 });
 
