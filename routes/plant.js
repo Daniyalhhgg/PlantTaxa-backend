@@ -3,11 +3,18 @@ const router = express.Router();
 const Plant = require("../models/Plant");
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(__dirname, "../uploads/plants");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
 
 // Multer setup
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "../uploads/plants"));
+    cb(null, uploadsDir);
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname));
@@ -21,7 +28,7 @@ router.get("/", async (req, res) => {
     const plants = await Plant.find();
     res.json(plants);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ error: err.message }); // Use 'error' for frontend consistency
   }
 });
 
@@ -36,7 +43,7 @@ router.post("/", upload.single("image"), async (req, res) => {
 
     res.json({ message: "Plant added successfully", plant });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ error: err.message }); // Use 'error' for frontend consistency
   }
 });
 
