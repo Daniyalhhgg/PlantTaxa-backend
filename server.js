@@ -4,6 +4,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
 const path = require("path");
+const fs = require("fs");
 
 dotenv.config();
 
@@ -64,6 +65,15 @@ mongoose
     console.error("❌ MongoDB connection error:", err.message);
     process.exit(1);
   });
+
+// ✅ Ensure upload folder exists
+const uploadPath = path.join(__dirname, "uploads", "plants");
+if (!fs.existsSync(uploadPath)) {
+  fs.mkdirSync(uploadPath, { recursive: true });
+  console.log("📂 Created uploads/plants folder at:", uploadPath);
+} else {
+  console.log("📂 Upload folder exists:", uploadPath);
+}
 
 // ✅ Serve uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

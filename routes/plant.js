@@ -1,65 +1,50 @@
-// backend/routes/plant.js
+// routes/plant.js
 const express = require("express");
-const router = express.Router();
-const Plant = require("../models/Plant");
 const multer = require("multer");
 const path = require("path");
-const fs = require("fs");
+const Plant = require("../models/Plant");
 
-// ✅ uploads directory backend root pe ensure karo
-const uploadsDir = path.join(__dirname, "../uploads/plants");
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true });
-}
+const router = express.Router();
 
-// Multer setup
+// ✅ Multer storage config
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "../uploads/plants"));
   },
-  filename: (req, file, cb) => {
+  filename: function (req, file, cb) {
     cb(null, Date.now() + path.extname(file.originalname));
   },
 });
+
 const upload = multer({ storage });
 
-// GET all plants
-router.get("/", async (req, res) => {
+// ✅ Create Plant
+router.post("/", upload.single("image"), async (req, res) => {
   try {
-    const plants = await Plant.find();
+    const { name, price, details } = req.body;
 
-    // return absolute image url
-    const updatedPlants = plants.map((plant) => ({
-      ...plant.toObject(),
-      imageUrl: plant.imageUrl
-        ? plant.imageUrl.startsWith("http")
-          ? plant.imageUrl
-          : `${req.protocol}://${req.get("host")}${plant.imageUrl}`
-        : "",
-    }));
+    const plant = new Plant({
+      name,
+      price,
+      description: details,
+      imageUrl: req.file ? `/uploads/plants/${req.file.filename}` : null,
+    });
 
-    res.json(updatedPlants);
+    await plant.save();
+    res.status(201).json(plant);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("❌ Error saving plant:", err.message);
+    res.status(500).json({ message: "Server error" });
   }
 });
 
-// ADD new plant with image upload
-router.post("/", upload.single("image"), async (req, res) => {
+// ✅ Get Plants
+router.get("/", async (req, res) => {
   try {
-    const { name, price, description } = req.body;
-
-    // ✅ full URL save
-    const imageUrl = req.file
-      ? `${req.protocol}://${req.get("host")}/uploads/plants/${req.file.filename}`
-      : "";
-
-    const plant = new Plant({ name, price, description, imageUrl });
-    await plant.save();
-
-    res.json({ message: "Plant added successfully", plant });
+    const plants = await Plant.find();
+    res.json(plants);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
